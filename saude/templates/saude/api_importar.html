@@ -1,0 +1,35 @@
+{% extends "saude/base.html" %}
+
+{% block title %}Importar via API - MISAU{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>🌐 Importar dados de API externa</h2>
+    <p>Informe a URL da API que retorna dados em formato JSON.</p>
+
+    <form method="post" style="max-width:600px;">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Buscar e Importar</button>
+        <a href="{% url 'dashboard_restrito' %}" class="btn btn-outline">Cancelar</a>
+    </form>
+
+    {% if messages %}
+        <div class="messages" style="margin-top:20px;">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <hr style="margin:40px 0;">
+    <h4>📌 Exemplo de resposta da API</h4>
+    <p>A API deve retornar um JSON com uma lista de objetos. Exemplo:</p>
+    <pre style="background:#f4f4f4; padding:12px; border-radius:8px;">
+[
+  {"provincia": "Maputo", "doenca": "Malária", "data": "2026-07-01", "quantidade": 150, "confirmados": 120},
+  {"provincia": "Gaza", "doenca": "Cólera", "data": "2026-06-30", "quantidade": 45, "confirmados": 40}
+]
+    </pre>
+</div>
+{% endblock %}

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-MZ">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MISAU - Ministério da Saúde de Moçambique">
+    <title>{% block title %}MISAU | Saúde Pública{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+    <style>
+        /* ===== RESET E BASE ===== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #1a5d3c;
+            --primary-dark: #0e3b25;
+            --secondary: #d4a017;
+            --accent: #1e88e5;
+            --success: #166534;
+            --warning: #b45309;
+            --danger: #b91c1c;
+            --bg-light: #f4f7f2;
+            --bg-card: #ffffff;
+            --text-primary: #1e2a2e;
+            --text-secondary: #2d3e42;
+            --border: #cbd5c1;
+            --focus-ring: 0 0 0 3px rgba(26, 93, 60, 0.5);
+            --radius: 16px;
+            --radius-lg: 24px;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --font-base: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        }
+        body {
+            font-family: var(--font-base);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-light);
+        }
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            z-index: 1000;
+            font-weight: 600;
+            border-radius: 0 0 8px 0;
+        }
+        .skip-link:focus { top: 0; }
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 1.4rem;
+        }
+        .logo-text h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .logo-text p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn:hover, .btn:focus {
+            background: var(--primary-dark);
+            box-shadow: var(--focus-ring);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-emergency {
+            background: var(--danger);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.4); }
+            50% { box-shadow: 0 0 0 12px rgba(185, 28, 28, 0); }
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+        .footer {
+            background: var(--primary);
+            color: white;
+            padding: 32px 20px;
+            margin-top: 40px;
+        }
+        .footer a { color: #c8e6d9; text-decoration: none; display: block; margin-bottom: 8px; }
+        .footer a:hover { color: white; text-decoration: underline; }
+        @media (max-width: 768px) {
+            .header { flex-direction: column; align-items: flex-start; }
+            .btn { width: 100%; justify-content: center; }
+        }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; }
+        .badge-critical { background: #fee2e2; color: var(--danger); border: 1px solid #fecaca; }
+        .badge-atencao { background: #fffbeb; color: var(--warning); border: 1px solid #fcd34d; }
+        .badge-informacao { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Ir para o conteúdo principal</a>
+
+    <header class="header">
+        <a href="{% url 'dashboard' %}" class="logo" aria-label="Página inicial do MISAU">
+            <div class="logo-icon" aria-hidden="true">🇲🇿</div>
+            <div class="logo-text">
+                <h1>MISAU</h1>
+                <p>Ministério da Saúde de Moçambique</p>
+            </div>
+        </a>
+        <nav style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            {% if user.is_authenticated %}
+                <span style="color: var(--text-secondary); font-weight: 500;">Olá, {{ user.username }}!</span>
+                <a href="{% url 'dashboard_restrito' %}" class="btn btn-outline" style="padding: 6px 14px; font-size:0.85rem;">
+                    <span class="material-icons-round" aria-hidden="true">admin_panel_settings</span> Painel
+                </a>
+                <a href="{% url 'logout' %}" class="btn btn-outline" style="padding: 6px 14px; font-size:0.85rem;">
+                    <span class="material-icons-round" aria-hidden="true">logout</span> Sair
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-outline" style="padding: 6px 14px; font-size:0.85rem;">
+                    <span class="material-icons-round" aria-hidden="true">login</span> Entrar
+                </a>
+            {% endif %}
+            {% block header_actions %}
+            <a href="#ajuda" class="btn btn-outline">
+                <span class="material-icons-round" aria-hidden="true">help</span> Precisa de ajuda?
+            </a>
+            <a href="tel:117" class="btn btn-emergency" aria-label="Emergência geral: disque 117">
+                <span class="material-icons-round" aria-hidden="true">emergency</span> Emergência: 117
+            </a>
+            {% endblock %}
+        </nav>
+    </header>
+
+    <main id="main-content" class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content" style="max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:24px;">
+            <div>
+                <h4>MISAU</h4>
+                <p>Ministério da Saúde de Moçambique<br>Compromisso com a vida e a transparência.</p>
+            </div>
+            <div>
+                <h4>Links oficiais</h4>
+                <a href="https://www.misau.gov.mz" target="_blank">Portal do MISAU</a>
+                <a href="https://www.ins.gov.mz" target="_blank">Instituto Nacional de Saúde</a>
+                <a href="#">Política de privacidade</a>
+            </div>
+            <div>
+                <h4>Contactos</h4>
+                <p>📧 gabinete@misau.gov.mz</p>
+                <p>📞 Central: 21 312 456</p>
+                <p>📱 Linha Verde: 84 123 4567</p>
+            </div>
+        </div>
+        <p style="text-align:center; margin-top:32px; font-size:0.85rem; border-top:1px solid rgba(255,255,255,0.2); padding-top:20px;">
+            © {% block ano %}{% endblock %} MISAU – Dados públicos actualizados diariamente. Em caso de emergência, ligue 117.
+        </p>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

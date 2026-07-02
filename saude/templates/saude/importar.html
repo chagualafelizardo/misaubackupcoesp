@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-MZ">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importar Dados - MISAU</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f7f2; }
+        .container { max-width: 800px; margin: 40px auto; padding: 24px; background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #1a5d3c; margin-bottom: 8px; }
+        .sub { color: #2d3e42; margin-bottom: 24px; }
+        form { display: flex; flex-direction: column; gap: 20px; }
+        label { font-weight: 600; color: #1e2a2e; }
+        select, input[type="file"] { padding: 12px; border: 1px solid #cbd5c1; border-radius: 8px; font-size: 1rem; }
+        .btn { background: #1a5d3c; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
+        .btn:hover { background: #0e3b25; }
+        .btn-secondary { background: #e9f3eb; color: #1a5d3c; text-decoration: none; padding: 12px 24px; border-radius: 8px; text-align: center; }
+        .btn-secondary:hover { background: #d1e3d6; }
+        .messages { margin-bottom: 20px; }
+        .message { padding: 12px; border-radius: 8px; }
+        .message.success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .message.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .help-text { font-size: 0.85rem; color: #6b7280; margin-top: 4px; }
+        .footer { margin-top: 32px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="material-icons-round" style="vertical-align: middle;">upload_file</span> Importar Dados</h1>
+        <p class="sub">Carregue dados para o sistema a partir de ficheiros Excel, CSV ou XML.</p>
+
+        <!-- Mensagens -->
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div>
+                <label for="{{ form.tipo_dado.id_for_label }}">Tipo de Dados</label>
+                {{ form.tipo_dado }}
+            </div>
+            <div>
+                <label for="{{ form.arquivo.id_for_label }}">Selecione o ficheiro</label>
+                {{ form.arquivo }}
+                <div class="help-text">{{ form.arquivo.help_text }}</div>
+            </div>
+            <button type="submit" class="btn">Carregar e Importar</button>
+        </form>
+
+        <!-- Tabela com exemplos de estrutura esperada -->
+        <div style="margin-top: 32px; padding: 16px; background: #f9fafb; border-radius: 8px;">
+            <h3 style="color: #1e2a2e; font-size: 1rem;">📋 Estrutura esperada por tipo</h3>
+            <ul style="list-style: none; padding: 0; margin-top: 8px; font-size: 0.9rem;">
+                <li><strong>Casos:</strong> provincia, doenca, data, quantidade, confirmados (opcional)</li>
+                <li><strong>Alertas:</strong> provincia, doenca, titulo, gravidade, descricao (opcional), status (opcional), orientacao (opcional)</li>
+                <li><strong>Cobertura Vacinal:</strong> provincia, vacina, ano, percentual</li>
+                <li><strong>Leitos:</strong> provincia, total, ocupados</li>
+            </ul>
+            <p style="font-size: 0.85rem; color: #6b7280; margin-top: 8px;">
+                <strong>Gravidade:</strong> critico, atencao, informacao<br>
+                <strong>Províncias/Doenças/Vacinas</strong> devem existir previamente no sistema.
+            </p>
+        </div>
+
+        <div class="footer">
+            <a href="{% url 'dashboard_restrito' %}" class="btn-secondary">← Voltar ao Painel</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,2 @@
+# Importar dados das APIs configuradas a cada hora
+0 * * * * root /usr/local/bin/python /app/manage.py importar_apis_agendado >> /var/log/django_cron.log 2>&1

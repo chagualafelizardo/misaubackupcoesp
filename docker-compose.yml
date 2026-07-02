@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:15
+    container_name: coesp_db
+    environment:
+      POSTGRES_DB: coesp_db
+      POSTGRES_USER: coesp_user
+      POSTGRES_PASSWORD: coesp_pass
+    ports:
+      - "5434:5432"   # mapeia para não conflitar com PostgreSQL local
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coesp_user -d coesp_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: coesp_web
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Configuração do banco de dados (usada no settings.py)
+      - DB_NAME=coesp_db
+      - DB_USER=coesp_user
+      - DB_PASSWORD=coesp_pass
+      - DB_HOST=db
+      - DB_PORT=5432
+      # Opcional: use DATABASE_URL se preferir (descomente e ajuste o settings)
+      # - DATABASE_URL=postgresql://coesp_user:coesp_pass@db:5432/coesp_db
+      - DJANGO_SETTINGS_MODULE=misau_backend.settings   # <-- NOME DO PROJETO
+    env_file:
+      - .env   # (opcional) para outras variáveis como SECRET_KEY, DEBUG, etc.
+
+volumes:
+  postgres_data:
