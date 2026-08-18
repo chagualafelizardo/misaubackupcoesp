@@ -1,73 +1,92 @@
 {% extends "saude/base.html" %}
 
-{% block title %}Configurações de API - MISAU{% endblock %}
+{% block title %}Gestão de APIs - COESP{% endblock %}
 
-{% block body %}
-<div class="container" style="max-width:1200px; margin:0 auto; padding:24px 20px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h2>🌐 Configurações de API</h2>
-        <div style="display:flex; gap:12px;">
-            <a href="{% url 'criar_api' %}" class="btn btn-primary">➕ Nova Configuração</a>
-            <a href="{% url 'executar_todas_apis' %}" class="btn btn-outline">▶️ Executar Todas</a>
-        </div>
+{% block content %}
+<div class="container">
+    <h2>⚙️ Gestão de APIs</h2>
+    <p>Configure APIs externas para importação automática de dados.</p>
+
+    <div style="display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
+        <a href="{% url 'criar_api' %}" class="btn btn-primary">
+            <span class="material-icons-round" aria-hidden="true">add</span> Nova Configuração
+        </a>
+        <a href="{% url 'executar_todas_apis' %}" class="btn btn-success">
+            <span class="material-icons-round" aria-hidden="true">play_arrow</span> Executar Todas Agora
+        </a>
+        <a href="{% url 'dashboard_restrito' %}" class="btn btn-outline">Voltar ao Painel</a>
     </div>
 
-    {% if messages %}
-        <div style="margin-bottom:20px;">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        </div>
+    {% if configuracoes %}
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>URL</th>
+                    <th>Tipo</th>
+                    <th>Intervalo</th>
+                    <th>Última Execução</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for config in configuracoes %}
+                <tr>
+                    <td><strong>{{ config.nome }}</strong></td>
+                    <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="{{ config.url }}">{{ config.url|truncatechars:30 }}</td>
+                    <td>{{ config.get_tipo_dado_display }}</td>
+                    <td>{{ config.get_intervalo_display }}</td>
+                    <td>
+                        {% if config.ultima_execucao %}
+                            {{ config.ultima_execucao|date:"d/m/Y H:i" }}
+                        {% else %}
+                            <span class="badge badge-secondary">Nunca</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if config.ativo %}
+                            <span class="badge badge-success">Activo</span>
+                        {% else %}
+                            <span class="badge badge-danger">Inactivo</span>
+                        {% endif %}
+                        <br>
+                        <small style="color:var(--text-secondary);">{{ config.ultimo_status|default:"—"|truncatechars:40 }}</small>
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            <a href="{% url 'editar_api' config.id %}" class="btn btn-outline" style="padding:4px 10px; font-size:0.75rem;">
+                                <span class="material-icons-round" style="font-size:1rem;">edit</span>
+                            </a>
+                            <a href="{% url 'executar_api' config.id %}" class="btn btn-primary" style="padding:4px 10px; font-size:0.75rem;">
+                                <span class="material-icons-round" style="font-size:1rem;">play_arrow</span>
+                            </a>
+                            <a href="{% url 'deletar_api' config.id %}" class="btn btn-danger" style="padding:4px 10px; font-size:0.75rem;">
+                                <span class="material-icons-round" style="font-size:1rem;">delete</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color:var(--text-secondary); text-align:center; padding:40px 0;">
+        Nenhuma configuração de API cadastrada.
+    </p>
     {% endif %}
 
-    <table style="width:100%; background:white; border-collapse:collapse; border-radius:16px; overflow:hidden;">
-        <thead>
-            <tr style="background:#e9f3eb;">
-                <th style="padding:12px; text-align:left;">Nome</th>
-                <th style="padding:12px; text-align:left;">Tipo</th>
-                <th style="padding:12px; text-align:left;">Intervalo</th>
-                <th style="padding:12px; text-align:left;">Status</th>
-                <th style="padding:12px; text-align:left;">Última Execução</th>
-                <th style="padding:12px; text-align:left;">Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for config in configuracoes %}
-            <tr style="border-bottom:1px solid #cbd5c1;">
-                <td style="padding:12px;">{{ config.nome }}</td>
-                <td style="padding:12px;">{{ config.get_tipo_dado_display }}</td>
-                <td style="padding:12px;">{{ config.get_intervalo_display }}</td>
-                <td style="padding:12px;">
-                    {% if config.ativo %}
-                        <span style="color:#166534;">✅ Ativo</span>
-                    {% else %}
-                        <span style="color:#b91c1c;">⛔ Inativo</span>
-                    {% endif %}
-                </td>
-                <td style="padding:12px;">
-                    {% if config.ultima_execucao %}
-                        {{ config.ultima_execucao|date:"d/m/Y H:i" }}
-                        <br><small style="color:#2d3e42;">{{ config.ultimo_status|truncatechars:30 }}</small>
-                    {% else %}
-                        Nunca
-                    {% endif %}
-                </td>
-                <td style="padding:12px;">
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <a href="{% url 'executar_api' config.id %}" class="btn btn-outline" style="padding:4px 12px; font-size:0.85rem;">▶️ Executar</a>
-                        <a href="{% url 'editar_api' config.id %}" class="btn btn-outline" style="padding:4px 12px; font-size:0.85rem;">✏️ Editar</a>
-                        <a href="{% url 'deletar_api' config.id %}" class="btn btn-outline" style="padding:4px 12px; font-size:0.85rem; color:#b91c1c; border-color:#b91c1c;">🗑️</a>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="6" style="padding:24px; text-align:center;">Nenhuma configuração de API cadastrada.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <div style="margin-top:24px;">
-        <a href="{% url 'dashboard_restrito' %}" class="btn btn-outline">← Voltar ao Painel</a>
-    </div>
+    <hr style="margin:40px 0;">
+    <h4>📌 Sobre as importações automáticas</h4>
+    <p>O sistema verifica periodicamente (a cada 5 minutos) se alguma API configurada precisa ser executada com base no intervalo definido.</p>
+    <ul>
+        <li><strong>1h</strong> – executa a cada 1 hora</li>
+        <li><strong>6h</strong> – executa a cada 6 horas</li>
+        <li><strong>12h</strong> – executa a cada 12 horas</li>
+        <li><strong>24h</strong> – executa diariamente</li>
+        <li><strong>Semanal</strong> – executa semanalmente</li>
+    </ul>
 </div>
 {% endblock %}

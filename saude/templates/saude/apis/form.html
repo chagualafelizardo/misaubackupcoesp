@@ -1,14 +1,33 @@
 {% extends "saude/base.html" %}
 
-{% block title %}{{ acao }} Configuração de API - MISAU{% endblock %}
+{% block title %}{{ acao }} Configuração de API - COESP{% endblock %}
 
-{% block body %}
-<div style="max-width:600px; margin:40px auto; background:white; padding:32px; border-radius:16px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+{% block content %}
+<div class="container">
     <h2>{{ acao }} Configuração de API</h2>
-    <form method="post" style="margin-top:20px;">
+    <p>Preencha os dados para configurar uma API externa.</p>
+
+    <form method="post" style="max-width:600px; margin-top:20px;">
         {% csrf_token %}
-        {{ form.as_p }}
-        <div style="display:flex; gap:12px; margin-top:20px;">
+        
+        {% for field in form %}
+        <div style="margin-bottom:16px;">
+            <label for="{{ field.id_for_label }}" style="display:block; font-weight:600; margin-bottom:4px;">
+                {{ field.label }}
+            </label>
+            {{ field }}
+            {% if field.help_text %}
+                <small style="color:var(--text-secondary); display:block; margin-top:4px;">{{ field.help_text }}</small>
+            {% endif %}
+            {% if field.errors %}
+                <div style="color:#b91c1c; font-size:0.9rem; margin-top:4px;">
+                    {{ field.errors }}
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div style="display:flex; gap:12px; margin-top:24px;">
             <button type="submit" class="btn btn-primary">Salvar</button>
             <a href="{% url 'listar_apis' %}" class="btn btn-outline">Cancelar</a>
         </div>

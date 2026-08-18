@@ -5,7 +5,14 @@
 {% block content %}
 <div class="container">
     <h2>🌐 Importar dados de API externa</h2>
-    <p>Informe a URL da API que retorna dados em formato JSON.</p>
+    <p>Informe a URL da API que retorna dados em formato JSON para importar manualmente.</p>
+
+    <!-- Dica para a gestão de APIs agendadas -->
+    <div style="background: #e8f5e9; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #1a5d3c;">
+        <strong>💡 Dica:</strong> Para importações automáticas e agendadas, configure uma 
+        <a href="{% url 'listar_apis' %}" style="color: var(--primary); font-weight:600;">API no painel de gestão</a>. 
+        Pode definir intervalos como 1h, 6h, 12h, diário ou semanal.
+    </div>
 
     <form method="post" style="max-width:600px;">
         {% csrf_token %}
@@ -23,13 +30,23 @@
     {% endif %}
 
     <hr style="margin:40px 0;">
-    <h4>📌 Exemplo de resposta da API</h4>
-    <p>A API deve retornar um JSON com uma lista de objetos. Exemplo:</p>
-    <pre style="background:#f4f4f4; padding:12px; border-radius:8px;">
+    <h4>📌 Exemplo de resposta da API (formato JSON)</h4>
+    <p>A API deve retornar uma lista de objetos com os seguintes campos (obrigatórios para casos):</p>
+    <ul>
+        <li><code>provincia</code> (string) – nome da província (ex: "Maputo")</li>
+        <li><code>doenca</code> (string) – nome da doença (ex: "Malária")</li>
+        <li><code>data</code> (string) – data no formato YYYY-MM-DD</li>
+        <li><code>quantidade</code> (número) – total de casos</li>
+        <li><code>confirmados</code> (número) – casos confirmados</li>
+        <li><code>curados</code> (número, opcional) – casos curados (padrão 0)</li>
+        <li><code>obitos</code> (número, opcional) – óbitos (padrão 0)</li>
+    </ul>
+    <pre style="background:#f4f4f4; padding:12px; border-radius:8px; overflow-x:auto;">
 [
-  {"provincia": "Maputo", "doenca": "Malária", "data": "2026-07-01", "quantidade": 150, "confirmados": 120},
-  {"provincia": "Gaza", "doenca": "Cólera", "data": "2026-06-30", "quantidade": 45, "confirmados": 40}
+  {"provincia": "Maputo", "doenca": "Malária", "data": "2026-07-01", "quantidade": 150, "confirmados": 120, "curados": 100, "obitos": 5},
+  {"provincia": "Gaza", "doenca": "Cólera", "data": "2026-06-30", "quantidade": 45, "confirmados": 40, "curados": 35, "obitos": 2}
 ]
     </pre>
+    <p style="margin-top:8px;">📌 <strong>Nota:</strong> Se os campos <code>curados</code> e <code>obitos</code> não forem enviados, o sistema assume 0.</p>
 </div>
 {% endblock %}

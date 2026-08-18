@@ -38,6 +38,8 @@ class CasoDoenca(models.Model):
     data = models.DateField()
     quantidade = models.PositiveIntegerField()
     confirmados = models.PositiveIntegerField(default=0)
+    curados = models.PositiveIntegerField(default=0)          # <-- NOVO
+    obitos = models.PositiveIntegerField(default=0)           # <-- NOVO
 
     class Meta:
         db_table = 'caso_doenca'

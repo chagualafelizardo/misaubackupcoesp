@@ -15,8 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+# misau_backend/urls.py
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
+
 from saude.views import (
     dashboard, login_view, logout_view, dashboard_restrito,
     importar_dados, buscar_dados_api,
@@ -31,10 +33,12 @@ urlpatterns = [
     path('painel/', dashboard_restrito, name='dashboard_restrito'),
     path('importar/', importar_dados, name='importar_dados'),
     path('api-importar/', buscar_dados_api, name='api_importar'),
+    # Rotas para gestão de APIs (já estão todas definidas)
     path('apis/', listar_apis, name='listar_apis'),
     path('apis/criar/', criar_api, name='criar_api'),
     path('apis/editar/<int:pk>/', editar_api, name='editar_api'),
     path('apis/deletar/<int:pk>/', deletar_api, name='deletar_api'),
     path('apis/executar/<int:pk>/', executar_api, name='executar_api'),
     path('apis/executar-todas/', executar_todas_apis, name='executar_todas_apis'),
+    # NÃO inclua 'saude.urls' aqui!
 ]

@@ -1,18 +1,17 @@
+import chardet
 import pandas as pd
 import xml.etree.ElementTree as ET
 import requests
 from django.utils import timezone
 from datetime import date, timedelta
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum, Avg, Max
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from .models import Provincia, Doenca, CasoDoenca, Alerta, CoberturaVacinal, Vacina, Leito
-from .forms import UploadDataForm, APIImportForm
-from .models import ConfiguracaoAPI
-from .forms import ConfiguracaoAPIForm
+from .models import Provincia, Doenca, CasoDoenca, Alerta, CoberturaVacinal, Vacina, Leito, ConfiguracaoAPI
+from .forms import UploadDataForm, APIImportForm, ConfiguracaoAPIForm
 
 
 # ===================================================================
@@ -68,6 +67,22 @@ def dashboard(request):
     alertas = Alerta.objects.filter(active=True).select_related('provincia', 'doenca')
     doencas = Doenca.objects.all()
 
+    # ===== NOVO: Dados por doença para a cascata =====
+    dados_doencas = {}
+    for doenca in Doenca.objects.all():
+        casos = CasoDoenca.objects.filter(doenca=doenca).select_related('provincia')
+        dados_doencas[doenca.nome] = [
+            {
+                'provincia': caso.provincia.nome,
+                'data': caso.data.strftime('%Y-%m-%d'),
+                'quantidade': caso.quantidade,
+                'confirmados': caso.confirmados,
+                'curados': caso.curados,
+                'obitos': caso.obitos
+            }
+            for caso in casos
+        ]
+
     context = {
         'casos_malaria': casos_malaria,
         'ocupacao_leitos': ocupacao_leitos,
@@ -78,6 +93,7 @@ def dashboard(request):
         'provincias_status': provincias_status,
         'alertas': alertas,
         'doencas': doencas,
+        'dados_doencas': dados_doencas,   # <--- ADICIONADO
         'hoje': hoje,
         'ano_atual': hoje.year,
     }
@@ -113,6 +129,8 @@ def logout_view(request):
 @login_required
 def dashboard_restrito(request):
     hoje = date.today()
+    configuracoes_api = ConfiguracaoAPI.objects.all()  # <--- ADICIONE ESTA
+
     semana_passada = hoje - timedelta(days=7)
 
     casos_malaria = CasoDoenca.objects.filter(
@@ -130,6 +148,12 @@ def dashboard_restrito(request):
 
     alertas_activos = Alerta.objects.filter(active=True).count()
 
+    # ===== NOVOS TOTAIS AGREGADOS =====
+    total_casos = CasoDoenca.objects.aggregate(total=Sum('quantidade'))['total'] or 0
+    total_confirmados = CasoDoenca.objects.aggregate(total=Sum('confirmados'))['total'] or 0
+    total_curados = CasoDoenca.objects.aggregate(total=Sum('curados'))['total'] or 0
+    total_obitos = CasoDoenca.objects.aggregate(total=Sum('obitos'))['total'] or 0
+
     provincias_count = Provincia.objects.count()
     doencas_count = Doenca.objects.count()
     todos_alertas = Alerta.objects.select_related('provincia', 'doenca').all()
@@ -144,8 +168,14 @@ def dashboard_restrito(request):
         'doencas_count': doencas_count,
         'todos_alertas': todos_alertas,
         'todos_casos': todos_casos,
+        # ===== NOVOS TOTAIS NO CONTEXTO =====
+        'total_casos': total_casos,
+        'total_confirmados': total_confirmados,
+        'total_curados': total_curados,
+        'total_obitos': total_obitos,
         'hoje': hoje,
         'ano_atual': hoje.year,
+        'configuracoes_api': configuracoes_api,  # <--- ADICIONE ESTA
     }
     return render(request, 'saude/dashboard_restrito.html', context)
 
@@ -161,12 +191,32 @@ def importar_dados(request):
             arquivo = request.FILES['arquivo']
             tipo = form.cleaned_data['tipo_dado']
             extensao = arquivo.name.split('.')[-1].lower()
+            encoding = form.cleaned_data.get('encoding', '')
+            doenca_escolhida = form.cleaned_data.get('doenca')
 
             try:
                 if extensao in ['xlsx', 'xls']:
                     df = pd.read_excel(arquivo)
                 elif extensao == 'csv':
-                    df = pd.read_csv(arquivo)
+                    if encoding:
+                        try:
+                            df = pd.read_csv(arquivo, encoding=encoding)
+                        except UnicodeDecodeError:
+                            messages.error(request, f'❌ A codificação "{encoding}" não é válida para este ficheiro.')
+                            return render(request, 'saude/importar.html', {'form': form})
+                    else:
+                        # Forçar latin-1 (Windows-1252) – comum em ficheiros portugueses
+                        try:
+                            df = pd.read_csv(arquivo, encoding='latin-1')
+                        except UnicodeDecodeError:
+                            # Fallback para cp1252
+                            try:
+                                arquivo.seek(0)
+                                df = pd.read_csv(arquivo, encoding='cp1252')
+                            except UnicodeDecodeError:
+                                # Último recurso: utf-8 ignorando erros
+                                arquivo.seek(0)
+                                df = pd.read_csv(arquivo, encoding='utf-8', errors='ignore')
                 elif extensao == 'xml':
                     df = parse_xml(arquivo)
                 else:
@@ -174,7 +224,7 @@ def importar_dados(request):
                     return render(request, 'saude/importar.html', {'form': form})
 
                 if tipo == 'casos':
-                    resultado = importar_casos(df)
+                    resultado = importar_casos(df, doenca_escolhida)
                 elif tipo == 'alertas':
                     resultado = importar_alertas(df)
                 elif tipo == 'cobertura':
@@ -190,6 +240,10 @@ def importar_dados(request):
                 else:
                     messages.error(request, f"❌ {resultado['mensagem']}")
 
+            except pd.errors.EmptyDataError:
+                messages.error(request, '❌ O ficheiro está vazio ou não contém dados válidos.')
+            except pd.errors.ParserError as e:
+                messages.error(request, f'❌ Erro ao analisar o ficheiro: {str(e)}. Verifique o formato e separadores.')
             except Exception as e:
                 messages.error(request, f"❌ Erro ao processar ficheiro: {str(e)}")
 
@@ -198,6 +252,43 @@ def importar_dados(request):
         form = UploadDataForm()
 
     return render(request, 'saude/importar.html', {'form': form})
+
+def importar_casos(df, doenca_escolhida=None):
+    contagem = 0
+    erros = []
+    for index, row in df.iterrows():
+        try:
+            prov = Provincia.objects.get(nome__iexact=row['provincia'].strip())
+            # Verifica se existe coluna 'doenca'
+            if 'doenca' in df.columns and row.get('doenca'):
+                doenca = Doenca.objects.get(nome__iexact=row['doenca'].strip())
+            elif doenca_escolhida:
+                doenca = doenca_escolhida
+            else:
+                # Se não houver coluna nem escolha, usar a primeira doença cadastrada (ou 'Malária')
+                doenca = Doenca.objects.first()
+                if not doenca:
+                    raise Exception('Nenhuma doença cadastrada. Por favor, cadastre uma doença primeiro.')
+            
+            data = pd.to_datetime(row['data']).date()
+            qtd = int(row['quantidade'])
+            confirmados = int(row.get('confirmados', 0))
+            curados = int(row.get('curados', 0))
+            obitos = int(row.get('obitos', 0))
+
+            CasoDoenca.objects.update_or_create(
+                provincia=prov, doenca=doenca, data=data,
+                defaults={
+                    'quantidade': qtd,
+                    'confirmados': confirmados,
+                    'curados': curados,
+                    'obitos': obitos
+                }
+            )
+            contagem += 1
+        except Exception as e:
+            erros.append(f"Linha {index+2}: {str(e)}")
+    return {'sucesso': True, 'mensagem': f"{contagem} registos processados. Erros: {len(erros)}"}
 
 
 @login_required
@@ -272,25 +363,6 @@ def parse_xml(arquivo):
         rows.append(row_data)
     return pd.DataFrame(rows)
 
-def importar_casos(df):
-    contagem = 0
-    erros = []
-    for index, row in df.iterrows():
-        try:
-            prov = Provincia.objects.get(nome__iexact=row['provincia'].strip())
-            doenca = Doenca.objects.get(nome__iexact=row['doenca'].strip())
-            data = pd.to_datetime(row['data']).date()
-            qtd = int(row['quantidade'])
-            confirmados = int(row.get('confirmados', 0))
-            CasoDoenca.objects.update_or_create(
-                provincia=prov, doenca=doenca, data=data,
-                defaults={'quantidade': qtd, 'confirmados': confirmados}
-            )
-            contagem += 1
-        except Exception as e:
-            erros.append(f"Linha {index+2}: {str(e)}")
-    return {'sucesso': True, 'mensagem': f"{contagem} registos processados. Erros: {len(erros)}"}
-
 def importar_alertas(df):
     contagem = 0
     erros = []
@@ -344,7 +416,9 @@ def importar_leitos(df):
             erros.append(f"Linha {index+2}: {str(e)}")
     return {'sucesso': True, 'mensagem': f"{contagem} registos processados. Erros: {len(erros)}"}
 
-# Funcionalidades para configuração de APIs para o consumo de dados pelo COESP
+# ===================================================================
+# FUNCIONALIDADES PARA CONFIGURAÇÃO DE APIs
+# ===================================================================
 @login_required
 def listar_apis(request):
     """Lista todas as configurações de API."""
@@ -397,13 +471,11 @@ def executar_api(request, pk):
         return redirect('listar_apis')
 
     try:
-        # Usa a função de importação já existente
         headers = {'Authorization': f'Bearer {config.token}'} if config.token else {}
         response = requests.get(config.url, headers=headers, timeout=30)
         response.raise_for_status()
         dados = response.json()
 
-        # Converte para DataFrame e importa
         if isinstance(dados, list):
             df = pd.DataFrame(dados)
         elif isinstance(dados, dict) and 'results' in dados:
@@ -413,7 +485,6 @@ def executar_api(request, pk):
         else:
             raise ValueError('Formato de resposta não reconhecido.')
 
-        # Importa conforme tipo
         if config.tipo_dado == 'casos':
             resultado = importar_casos(df)
         elif config.tipo_dado == 'alertas':
@@ -444,7 +515,6 @@ def executar_todas_apis(request):
     executadas = 0
     for config in configuracoes:
         if config.deve_executar():
-            # Reutiliza a lógica de execução (pode ser melhor extrair para uma função)
             try:
                 headers = {'Authorization': f'Bearer {config.token}'} if config.token else {}
                 response = requests.get(config.url, headers=headers, timeout=30)
