@@ -8,82 +8,64 @@ class SaudeConfig(AppConfig):
     name = 'saude'
 
     def ready(self):
-        # Evita executar o agendador em migrações, testes ou comandos de shell
+        # Evita iniciar o scheduler em processos secundários (ex: runserver reload)
         if os.environ.get('RUN_MAIN') != 'true' and 'runserver' not in sys.argv:
             return
 
-        # Importa aqui para evitar carregamento precoce
         from apscheduler.schedulers.background import BackgroundScheduler
-        from django.conf import settings
-        from django.utils import timezone
         import logging
+        import traceback
 
         logger = logging.getLogger(__name__)
 
         def executar_apis_agendadas():
-            """Função que será chamada periodicamente."""
-            try:
-                from .views import executar_todas_apis
-                # Precisamos de um request fake ou usar o método diretamente
-                # Como executar_todas_apis é uma view que espera request, 
-                # vamos chamar a lógica interna sem o request
-                from .models import ConfiguracaoAPI
-                import requests
-                import pandas as pd
-                from .views import importar_casos, importar_alertas, importar_cobertura, importar_leitos
+            # Importações LOCAIS para evitar conflitos de carregamento
+            from .models import ConfiguracaoAPI
+            from .views import processar_configuracao_api
 
+            try:
                 configuracoes = ConfiguracaoAPI.objects.filter(ativo=True)
                 executadas = 0
+                erros = 0
+
                 for config in configuracoes:
+                    # Verifica se o objeto tem o método 'deve_executar'
+                    if not hasattr(config, 'deve_executar'):
+                        logger.error(f"❌ Configuração {config.id} não tem método 'deve_executar'. Tipo: {type(config)}")
+                        continue
+
                     if config.deve_executar():
                         try:
-                            headers = {'Authorization': f'Bearer {config.token}'} if config.token else {}
-                            response = requests.get(config.url, headers=headers, timeout=30)
-                            response.raise_for_status()
-                            dados = response.json()
-
-                            if isinstance(dados, list):
-                                df = pd.DataFrame(dados)
-                            elif isinstance(dados, dict) and 'results' in dados:
-                                df = pd.DataFrame(dados['results'])
-                            elif isinstance(dados, dict) and 'data' in dados:
-                                df = pd.DataFrame(dados['data'])
+                            sucesso = processar_configuracao_api(config)
+                            if sucesso:
+                                executadas += 1
                             else:
-                                raise ValueError('Formato de resposta não reconhecido.')
-
-                            if config.tipo_dado == 'casos':
-                                resultado = importar_casos(df)
-                            elif config.tipo_dado == 'alertas':
-                                resultado = importar_alertas(df)
-                            elif config.tipo_dado == 'cobertura':
-                                resultado = importar_cobertura(df)
-                            elif config.tipo_dado == 'leitos':
-                                resultado = importar_leitos(df)
-                            else:
-                                raise ValueError('Tipo de dados inválido.')
-
-                            config.ultima_execucao = timezone.now()
-                            config.ultimo_status = f"Sucesso: {resultado['mensagem']}"
-                            config.save()
-                            executadas += 1
+                                erros += 1
                         except Exception as e:
-                            config.ultimo_status = f"Erro: {str(e)}"
-                            config.save()
+                            # Captura exceções não tratadas
+                            msg = f"Erro agendador: {str(e)}"
+                            config.ultimo_status = msg[:254]
+                            config.save(update_fields=['ultimo_status'])
+                            erros += 1
+                            logger.error(f"❌ API '{config.nome}': {msg}")
+                            logger.error(traceback.format_exc())
 
                 if executadas:
-                    logger.info(f"APScheduler executou {executadas} APIs.")
-                else:
+                    logger.info(f"✅ APScheduler executou {executadas} API(s) com sucesso.")
+                if erros:
+                    logger.warning(f"⚠️ APScheduler registou {erros} erro(s) na execução.")
+                if not executadas and not erros:
                     logger.debug("APScheduler: nenhuma API precisou ser executada.")
 
             except Exception as e:
-                logger.error(f"Erro no agendador: {str(e)}")
+                logger.error(f"❌ Erro crítico no agendador: {str(e)}")
+                logger.error(traceback.format_exc())
 
-        # Inicia o agendador
         scheduler = BackgroundScheduler()
         scheduler.add_job(
             executar_apis_agendadas,
             trigger='interval',
-            minutes=5,  # A cada 5 minutos
+            minutes=5,
             id='executar_apis_agendadas',
             replace_existing=True
         )

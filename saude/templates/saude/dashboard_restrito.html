@@ -18,6 +18,7 @@
             --success: #166534;
             --danger: #b91c1c;
             --warning: #b45309;
+            --info: #0369a1;
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -115,6 +116,15 @@
         .btn-warning:hover {
             background: #78350f;
             border-color: #78350f;
+        }
+        .btn-info {
+            background: var(--info);
+            color: white;
+            border-color: var(--info);
+        }
+        .btn-info:hover {
+            background: #025091;
+            border-color: #025091;
         }
         .container {
             max-width: 1200px;
@@ -223,6 +233,12 @@
             flex-wrap: wrap;
             gap: 12px;
         }
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
         @media (max-width: 768px) {
             .header { flex-direction: column; align-items: stretch; }
             .nav-actions { justify-content: center; }
@@ -267,7 +283,7 @@
                     <span class="material-icons-round" aria-hidden="true" style="vertical-align:middle;">upload</span>
                     Importar Dados
                 </h3>
-                <span style="font-size:0.9rem; color:var(--text-secondary);">Formatos suportados: .xlsx, .xls, .csv, .xml</span>
+                <span style="font-size:0.9rem; color:var(--text-secondary);">Formatos: .xlsx, .xls, .csv, .xml</span>
             </div>
             <form method="post" enctype="multipart/form-data" action="{% url 'importar_dados' %}" class="import-form">
                 {% csrf_token %}
@@ -314,14 +330,16 @@
                 </div>
             </form>
             <p style="margin-top:12px; font-size:0.85rem; color:var(--text-secondary);">
-                <strong>Nota:</strong> Para casos, o ficheiro deve conter as colunas: 
-                <em>Província, Data, Quantidade, Confirmados, Curados, Óbitos</em> (Data no formato dd/mm/aaaa ou aaaa-mm-dd).
+                <strong>Nota:</strong> Para casos, o ficheiro pode ter os campos antigos 
+                (<em>Província, Data, Quantidade, Confirmados, Curados, Óbitos</em>) 
+                ou o formato OMS (<em>Date_reported, Country_code, New_cases, Cumulative_cases, New_deaths, Cumulative_deaths</em>).
+                <br>Para COVID-19, o sistema detecta automaticamente o formato OMS e cria a doença correspondente.
                 <br>Se ocorrer erro de codificação, selecione a opção adequada (recomendado: Latin-1 para ficheiros portugueses).
             </p>
         </section>
 
         <!-- ===== CARDS DE RESUMO ===== -->
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:20px; margin-bottom:32px;">
+        <div class="grid-cards">
             <div class="info-card">
                 <h3>Províncias</h3>
                 <div class="info-value">{{ provincias_count }}</div>
@@ -349,6 +367,23 @@
             <div class="info-card">
                 <h3>⚠️ Óbitos</h3>
                 <div class="info-value">{{ total_obitos }}</div>
+            </div>
+            <!-- NOVOS CARDS PARA OS CAMPOS EPIDEMIOLÓGICOS (se disponíveis) -->
+            <div class="info-card">
+                <h3>🆕 Novos Casos</h3>
+                <div class="info-value">{{ total_novos_casos|default:0 }}</div>
+            </div>
+            <div class="info-card">
+                <h3>📊 Acumulados</h3>
+                <div class="info-value">{{ total_casos_acumulados|default:0 }}</div>
+            </div>
+            <div class="info-card">
+                <h3>🆕 Novos Óbitos</h3>
+                <div class="info-value">{{ total_novos_obitos|default:0 }}</div>
+            </div>
+            <div class="info-card">
+                <h3>📊 Óbitos Acumulados</h3>
+                <div class="info-value">{{ total_obitos_acumulados|default:0 }}</div>
             </div>
         </div>
 
@@ -462,37 +497,57 @@
             </table>
         </section>
 
-        <!-- ===== TABELA DE CASOS ===== -->
+        <!-- ===== TABELA DE CASOS (ACTUALIZADA COM NOVOS CAMPOS) ===== -->
         <section style="background:white; border-radius:16px; padding:24px; border:1px solid var(--border);">
             <h3>Últimos Casos Registados</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Província</th>
-                        <th>Doença</th>
-                        <th>Quantidade</th>
-                        <th>Confirmados</th>
-                        <th>Curados</th>
-                        <th>Óbitos</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for caso in todos_casos %}
-                    <tr>
-                        <td>{{ caso.data|date:"d/m/Y" }}</td>
-                        <td>{{ caso.provincia.nome }}</td>
-                        <td>{{ caso.doenca.nome }}</td>
-                        <td>{{ caso.quantidade }}</td>
-                        <td>{{ caso.confirmados }}</td>
-                        <td>{{ caso.curados|default:0 }}</td>
-                        <td>{{ caso.obitos|default:0 }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="7">Nenhum caso registado.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Província</th>
+                            <th>Doença</th>
+                            <!-- Campos antigos -->
+                            <th>Quantidade</th>
+                            <th>Confirmados</th>
+                            <th>Curados</th>
+                            <th>Óbitos</th>
+                            <!-- Novos campos epidemiológicos -->
+                            <th>Novos Casos</th>
+                            <th>Acumulados</th>
+                            <th>Novos Óbitos</th>
+                            <th>Óbitos Acumulados</th>
+                            <th>Fonte</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for caso in todos_casos %}
+                        <tr>
+                            <td>{{ caso.data|date:"d/m/Y" }}</td>
+                            <td>{{ caso.provincia.nome }}</td>
+                            <td>{{ caso.doenca.nome }}</td>
+                            <!-- Antigos -->
+                            <td>{{ caso.quantidade }}</td>
+                            <td>{{ caso.confirmados }}</td>
+                            <td>{{ caso.curados|default:0 }}</td>
+                            <td>{{ caso.obitos|default:0 }}</td>
+                            <!-- Novos -->
+                            <td>{{ caso.novos_casos|default:0 }}</td>
+                            <td>{{ caso.casos_acumulados|default:0 }}</td>
+                            <td>{{ caso.novos_obitos|default:0 }}</td>
+                            <td>{{ caso.obitos_acumulados|default:0 }}</td>
+                            <td>{{ caso.fonte|default:"manual" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="12">Nenhum caso registado.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p style="margin-top:16px; font-size:0.85rem; color:var(--text-secondary);">
+                📌 Os campos <strong>Novos Casos, Acumulados, Novos Óbitos, Óbitos Acumulados</strong> são preenchidos automaticamente para dados no formato OMS (COVID-19).<br>
+                Para outras doenças, esses campos podem estar a zero se não forem fornecidos.
+            </p>
         </section>
     </main>
 

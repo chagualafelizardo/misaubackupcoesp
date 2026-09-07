@@ -30,23 +30,67 @@
     {% endif %}
 
     <hr style="margin:40px 0;">
-    <h4>📌 Exemplo de resposta da API (formato JSON)</h4>
-    <p>A API deve retornar uma lista de objetos com os seguintes campos (obrigatórios para casos):</p>
+    <h4>📌 Exemplos de resposta da API (formato JSON)</h4>
+    <p>O sistema suporta <strong>dois formatos</strong> de dados para casos de doenças.</p>
+
+    <h5 style="margin-top:24px;">1. Formato tradicional (qualquer doença)</h5>
+    <p>Campos obrigatórios:</p>
     <ul>
         <li><code>provincia</code> (string) – nome da província (ex: "Maputo")</li>
         <li><code>doenca</code> (string) – nome da doença (ex: "Malária")</li>
-        <li><code>data</code> (string) – data no formato YYYY-MM-DD</li>
+        <li><code>data</code> (string) – data no formato <code>YYYY-MM-DD</code></li>
         <li><code>quantidade</code> (número) – total de casos</li>
         <li><code>confirmados</code> (número) – casos confirmados</li>
-        <li><code>curados</code> (número, opcional) – casos curados (padrão 0)</li>
-        <li><code>obitos</code> (número, opcional) – óbitos (padrão 0)</li>
     </ul>
+    <p>Campos opcionais:</p>
+    <ul>
+        <li><code>curados</code> (número) – padrão 0</li>
+        <li><code>obitos</code> (número) – padrão 0</li>
+    </ul>
+    <p><strong>Novos campos (opcionais, mas recomendados):</strong></p>
+    <ul>
+        <li><code>novos_casos</code> (número) – novos casos no período</li>
+        <li><code>casos_acumulados</code> (número) – total acumulado desde o início</li>
+        <li><code>novos_obitos</code> (número) – novos óbitos no período</li>
+        <li><code>obitos_acumulados</code> (número) – total de óbitos acumulados</li>
+    </ul>
+    <p>Se estes novos campos forem fornecidos, serão armazenados nos respectivos campos do modelo.</p>
+
     <pre style="background:#f4f4f4; padding:12px; border-radius:8px; overflow-x:auto;">
 [
-  {"provincia": "Maputo", "doenca": "Malária", "data": "2026-07-01", "quantidade": 150, "confirmados": 120, "curados": 100, "obitos": 5},
-  {"provincia": "Gaza", "doenca": "Cólera", "data": "2026-06-30", "quantidade": 45, "confirmados": 40, "curados": 35, "obitos": 2}
+  {"provincia": "Maputo", "doenca": "Malária", "data": "2026-07-01", "quantidade": 150, "confirmados": 120, "curados": 100, "obitos": 5, "novos_casos": 10, "casos_acumulados": 1200},
+  {"provincia": "Gaza", "doenca": "Cólera", "data": "2026-06-30", "quantidade": 45, "confirmados": 40, "curados": 35, "obitos": 2, "novos_casos": 5, "casos_acumulados": 300}
 ]
     </pre>
-    <p style="margin-top:8px;">📌 <strong>Nota:</strong> Se os campos <code>curados</code> e <code>obitos</code> não forem enviados, o sistema assume 0.</p>
+
+    <h5 style="margin-top:24px;">2. Formato OMS (especialmente para COVID-19)</h5>
+    <p>Se a API retornar dados no padrão da OMS, o sistema detecta automaticamente e cria os registos sem necessidade de mapeamento manual.</p>
+    <p>Campos esperados (os nomes são case‑insensitive):</p>
+    <ul>
+        <li><code>Date_reported</code> (string) – data</li>
+        <li><code>Country_code</code> (string) – código do país (ex: "MZ") – o sistema filtra apenas Moçambique</li>
+        <li><code>Country</code> (string) – nome do país</li>
+        <li><code>WHO_region</code> (string) – região OMS (opcional)</li>
+        <li><code>New_cases</code> (número) – novos casos</li>
+        <li><code>Cumulative_cases</code> (número) – casos acumulados</li>
+        <li><code>New_deaths</code> (número) – novos óbitos</li>
+        <li><code>Cumulative_deaths</code> (número) – óbitos acumulados</li>
+    </ul>
+    <p>Neste formato, a doença <strong>COVID-19</strong> é criada automaticamente se não existir, e os dados são atribuídos à província <strong>"Moçambique"</strong>.</p>
+
+    <pre style="background:#f4f4f4; padding:12px; border-radius:8px; overflow-x:auto;">
+[
+  {"Date_reported": "2026-07-01", "Country_code": "MZ", "Country": "Mozambique", "WHO_region": "AFRO", "New_cases": 50, "Cumulative_cases": 1500, "New_deaths": 2, "Cumulative_deaths": 45},
+  {"Date_reported": "2026-07-02", "Country_code": "MZ", "Country": "Mozambique", "WHO_region": "AFRO", "New_cases": 70, "Cumulative_cases": 1570, "New_deaths": 3, "Cumulative_deaths": 48}
+]
+    </pre>
+
+    <p style="margin-top:16px;">📌 <strong>Notas importantes:</strong></p>
+    <ul>
+        <li>O sistema identifica o formato automaticamente – não precisa de escolher.</li>
+        <li>Para dados tradicionais, a doença deve existir previamente ou ser fornecida no campo <code>doenca</code>.</li>
+        <li>Para dados OMS, a doença <strong>COVID-19</strong> será criada se não existir.</li>
+        <li>Os campos antigos (<code>quantidade</code>, <code>confirmados</code>, etc.) são mantidos para compatibilidade com dashboards existentes.</li>
+    </ul>
 </div>
 {% endblock %}

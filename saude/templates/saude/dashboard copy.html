@@ -36,6 +36,7 @@
             --shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
             --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.08);
             --shadow-hover: 0 20px 40px rgba(0, 107, 77, 0.12);
+            --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.15);
             --focus-ring: 0 0 0 4px rgba(0, 107, 77, 0.25);
             --radius: 20px;
             --radius-sm: 12px;
@@ -58,6 +59,7 @@
             --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
             --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.7);
             --shadow-hover: 0 20px 40px rgba(52, 211, 153, 0.15);
+            --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.8);
             --focus-ring: 0 0 0 4px rgba(52, 211, 153, 0.3);
         }
 
@@ -636,19 +638,23 @@
             justify-content: center;
         }
 
-        /* ===== CARD DINÂMICO COM MINI-GRÁFICO ===== */
+        /* ===== CARD DINÂMICO COM MINI-GRÁFICO DE BARRAS ===== */
         .info-card-dynamic {
             position: relative;
         }
         .mini-chart-container {
-            height: 80px;
+            height: 120px;
             margin-top: 12px;
             position: relative;
         }
+        .mini-chart-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
         .mini-chart-expand {
             position: absolute;
-            top: 8px;
-            right: 8px;
+            top: 4px;
+            right: 4px;
             background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 50%;
@@ -660,6 +666,7 @@
             cursor: pointer;
             transition: all var(--transition);
             z-index: 5;
+            color: var(--text);
         }
         .mini-chart-expand:hover {
             background: var(--primary);
@@ -731,6 +738,73 @@
         .chart-modal-body {
             height: 500px;
             position: relative;
+        }
+
+        /* ===== FILTROS DO GRÁFICO PRINCIPAL ===== */
+        .chart-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+        .chart-filters .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-filters label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .chart-filters select {
+            padding: 6px 12px;
+            border-radius: 40px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .chart-filters select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: var(--focus-ring);
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+        .checkbox-group .color-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            margin-right: 2px;
         }
 
         /* ===== DOENÇAS (CASCATA) ===== */
@@ -843,15 +917,11 @@
             font-size: 1.1rem;
         }
 
-        /* ===== GRÁFICO ===== */
+        /* ===== GRÁFICO PRINCIPAL ===== */
         .chart-container {
-            height: 300px;
+            height: 320px;
             width: 100%;
             margin-top: 8px;
-        }
-        .chart-section p {
-            color: var(--text-secondary);
-            margin-bottom: 16px;
         }
 
         /* ===== TABELA DE ALERTAS ===== */
@@ -1066,7 +1136,14 @@
                 padding: 20px;
             }
             .chart-modal-body {
-                height: 400px;
+                height: 300px;
+            }
+            .chart-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .checkbox-group {
+                flex-wrap: wrap;
             }
         }
         @media (max-width: 480px) {
@@ -1090,6 +1167,9 @@
             }
             .doencas-stats {
                 grid-template-columns: 1fr;
+            }
+            .mini-chart-container {
+                height: 80px;
             }
         }
         @media print {
@@ -1230,22 +1310,25 @@
 
         <!-- ===== INDICADORES DE SAÚDE PÚBLICA ===== -->
         <section class="info-grid" aria-label="Indicadores de saúde pública">
-            <!-- Card Dinâmico da Doença Selecionada -->
             <article class="info-card clickable info-card-dynamic" id="card-doenca-dinamico" role="button" tabindex="0" aria-label="Ver gráfico detalhado da doença selecionada">
                 <h3>
                     <span class="material-icons-round" aria-hidden="true" id="card-doenca-icon">sick</span>
                     <span id="card-doenca-titulo">Casos de Malária</span>
                 </h3>
                 <div class="info-value" id="card-doenca-valor">0</div>
-                <p class="info-desc" id="card-doenca-descricao">Casos confirmados na última semana</p>
+                <p class="info-desc" id="card-doenca-descricao">Novos casos na última semana</p>
+                <div style="display:flex; gap:12px; margin:4px 0 8px; flex-wrap:wrap;">
+                    <span style="font-size:0.8rem; color:var(--text-secondary);"><strong>Acumulados:</strong> <span id="card-acumulados">0</span></span>
+                    <span style="font-size:0.8rem; color:var(--text-secondary);"><strong>Novos óbitos:</strong> <span id="card-novos-obitos">0</span></span>
+                    <span style="font-size:0.8rem; color:var(--text-secondary);"><strong>Óbitos acumulados:</strong> <span id="card-obitos-acumulados">0</span></span>
+                </div>
                 <span class="info-note">📅 Actualizado: {{ hoje|date:"d/m/Y" }}</span>
                 
-                <!-- Mini-gráfico dentro do card -->
                 <div class="mini-chart-container">
                     <button class="mini-chart-expand" id="expandChartBtn" aria-label="Expandir gráfico" title="Expandir gráfico">
                         <span class="material-icons-round">fullscreen</span>
                     </button>
-                    <canvas id="miniChart" role="img" aria-label="Mini gráfico de evolução"></canvas>
+                    <canvas id="miniChart" role="img" aria-label="Mini gráfico de barras"></canvas>
                 </div>
             </article>
 
@@ -1279,7 +1362,7 @@
                 Dados por Doença e Província
             </h3>
             <p style="margin-bottom: 16px; color: var(--text-secondary);">
-                Selecione uma doença para visualizar a distribuição por província, incluindo casos confirmados, curados e óbitos.
+                Selecione uma doença para visualizar a distribuição por província, incluindo novos casos, acumulados, óbitos, etc.
             </p>
 
             <div class="doencas-selector">
@@ -1296,24 +1379,33 @@
             <!-- Estatísticas resumo (totais) -->
             <div class="doencas-stats" id="doencasStats">
                 <div class="stat-item">
-                    <div class="stat-number" id="totalCasos">0</div>
-                    <div class="stat-label">Total de Casos</div>
+                    <div class="stat-number" id="totalNovosCasos">0</div>
+                    <div class="stat-label">Novos Casos</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number" id="totalConfirmados">0</div>
-                    <div class="stat-label">Confirmados</div>
+                    <div class="stat-number" id="totalAcumulados">0</div>
+                    <div class="stat-label">Acumulados</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number" id="totalCurados">0</div>
-                    <div class="stat-label">Curados</div>
+                    <div class="stat-number" id="totalNovosObitos">0</div>
+                    <div class="stat-label">Novos Óbitos</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number" id="totalObitos">0</div>
-                    <div class="stat-label">Óbitos</div>
+                    <div class="stat-number" id="totalObitosAcumulados">0</div>
+                    <div class="stat-label">Óbitos Acumulados</div>
                 </div>
             </div>
 
-            <!-- Tabela detalhada por província -->
+            <!-- Filtro de província para a tabela -->
+            <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; align-items: center;">
+                <label for="tabelaProvinciaFilter" style="font-weight: 600; color: var(--text-secondary);">Filtrar por província:</label>
+                <select id="tabelaProvinciaFilter" style="padding: 8px 16px; border-radius: 40px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-family: var(--font); font-size: 0.9rem; cursor: pointer;">
+                    <option value="Todas">Todas</option>
+                </select>
+                <button id="limparFiltroTabela" class="btn btn-outline btn-sm" style="padding: 6px 12px;">Limpar filtro</button>
+            </div>
+
+            <!-- Tabela detalhada por província (filtrada dinamicamente) -->
             <div class="table-container">
                 <table class="doencas-table" id="doencasTable">
                     <caption class="sr-only">Dados por província para a doença selecionada</caption>
@@ -1321,14 +1413,19 @@
                         <tr>
                             <th>Província</th>
                             <th>Data</th>
-                            <th>Quantidade</th>
-                            <th>Confirmados</th>
-                            <th>Curados</th>
-                            <th>Óbitos</th>
+                            <th>Novos Casos</th>
+                            <th>Acumulados</th>
+                            <th>Novos Óbitos</th>
+                            <th>Óbitos Acumulados</th>
+                            <!-- Campos antigos mantidos para compatibilidade (escondidos por padrão) -->
+                            <th style="display:none;">Quantidade</th>
+                            <th style="display:none;">Confirmados</th>
+                            <th style="display:none;">Curados</th>
+                            <th style="display:none;">Óbitos</th>
                         </tr>
                     </thead>
                     <tbody id="doencasTableBody">
-                        <!-- Preenchido via JavaScript com dados reais -->
+                        <!-- Preenchido via JavaScript -->
                     </tbody>
                 </table>
             </div>
@@ -1337,14 +1434,52 @@
             </p>
         </section>
 
-        <!-- ===== GRÁFICO DE EVOLUÇÃO ===== -->
+        <!-- ===== GRÁFICO DE EVOLUÇÃO (com múltiplas séries e filtros) ===== -->
         <section class="section-card" aria-labelledby="chart-title">
             <h3 id="chart-title">
                 <span class="material-icons-round" aria-hidden="true">trending_up</span>
                 <span id="evolucao-titulo">Evolução dos casos de Malária – últimas 6 semanas</span>
             </h3>
+
+            <!-- Filtros -->
+            <div class="chart-filters">
+                <div class="filter-group">
+                    <label for="provinciaFilter">Província:</label>
+                    <select id="provinciaFilter">
+                        <option value="Todas">Todas</option>
+                    </select>
+                </div>
+                <div class="filter-group checkbox-group">
+                    <label>
+                        <input type="checkbox" class="indicator-check" value="novos_casos" checked>
+                        <span class="color-indicator" style="background:#006b4d;"></span> Novos casos
+                    </label>
+                    <label>
+                        <input type="checkbox" class="indicator-check" value="casos_acumulados" checked>
+                        <span class="color-indicator" style="background:#0ea5e9;"></span> Acumulados
+                    </label>
+                    <label>
+                        <input type="checkbox" class="indicator-check" value="novos_obitos" checked>
+                        <span class="color-indicator" style="background:#dc2626;"></span> Novos óbitos
+                    </label>
+                    <label>
+                        <input type="checkbox" class="indicator-check" value="obitos_acumulados" checked>
+                        <span class="color-indicator" style="background:#8b5cf6;"></span> Óbitos acumulados
+                    </label>
+                    <!-- Campos antigos (opcionais) -->
+                    <label>
+                        <input type="checkbox" class="indicator-check" value="quantidade">
+                        <span class="color-indicator" style="background:#f59e0b;"></span> Quantidade
+                    </label>
+                    <label>
+                        <input type="checkbox" class="indicator-check" value="confirmados">
+                        <span class="color-indicator" style="background:#22c55e;"></span> Confirmados
+                    </label>
+                </div>
+            </div>
+
             <p style="margin-bottom:16px; color: var(--text-secondary); font-size:1rem;" id="evolucao-descricao">
-                Dados do boletim epidemiológico. Aumento sazonal esperado durante a época das chuvas.
+                Dados do boletim epidemiológico para a doença selecionada.
             </p>
             <div class="chart-container">
                 <canvas id="casosChart" role="img" aria-label="Gráfico de evolução de casos"></canvas>
@@ -1454,11 +1589,11 @@
             </h3>
             <div class="parceiros-grid">
                 <span class="parceiro-item">MISAU</span>
-                <span class="parceiro-item">Virage Beach</span>
+                <span class="parceiro-item">VillageReach</span>
                 <span class="parceiro-item">Fundo Global</span>
                 <span class="parceiro-item">OMS</span>
                 <span class="parceiro-item">Jhpiego</span>
-                <span class="parceiro-item">THI 360</span>
+                <span class="parceiro-item">FHI 360</span>
                 <span class="parceiro-item">UNICEF</span>
             </div>
         </section>
@@ -1507,484 +1642,636 @@
         </div>
     </footer>
 
-    <!-- ===== MODAL DO GRÁFICO EXPANDIDO ===== -->
+    <!-- ===== MODAL DO GRÁFICO DE BARRAS EXPANDIDO ===== -->
     <div class="chart-modal" id="chartModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="chart-modal-content">
             <div class="chart-modal-header">
-                <h3 id="modalTitle">Evolução de Casos</h3>
+                <h3 id="modalTitle">Distribuição de Casos</h3>
                 <button class="chart-modal-close" id="closeModalBtn" aria-label="Fechar">
                     <span class="material-icons-round">close</span>
                 </button>
             </div>
             <div class="chart-modal-body">
-                <canvas id="modalChart" role="img" aria-label="Gráfico expandido"></canvas>
+                <canvas id="modalChart" role="img" aria-label="Gráfico de barras expandido"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Dados para o gráfico -->
+    <!-- Dados -->
     {{ semanas|json_script:"semanas-data" }}
     {{ dados_grafico|json_script:"dados-grafico-data" }}
-
-    <!-- Dados reais das doenças e casos (vindos do backend) -->
     {{ dados_doencas|json_script:"dados-doencas" }}
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // ===== CARREGAR DADOS REAIS DAS DOENÇAS =====
-            let dadosDoencas = {};
-            try {
-                const dadosDoencasEl = document.getElementById('dados-doencas');
-                if (dadosDoencasEl) {
-                    dadosDoencas = JSON.parse(dadosDoencasEl.textContent);
-                }
-            } catch (e) {
-                console.warn('Erro ao carregar dados das doenças:', e);
+    document.addEventListener('DOMContentLoaded', function() {
+        // ===== CARREGAR DADOS =====
+        let dadosDoencas = {};
+        try {
+            const dadosDoencasEl = document.getElementById('dados-doencas');
+            if (dadosDoencasEl) {
+                dadosDoencas = JSON.parse(dadosDoencasEl.textContent);
             }
+        } catch (e) {
+            console.warn('Erro ao carregar dados das doenças:', e);
+        }
 
-            // ===== VARIÁVEIS GLOBAIS PARA GRÁFICOS =====
-            let miniChart = null;
-            let mainChart = null;
-            let modalChart = null;
-            let doencaAtual = '';
+        // ===== VARIÁVEIS GLOBAIS =====
+        let miniChart = null;
+        let mainChart = null;
+        let modalChart = null;
+        let doencaAtual = '';
+        let dadosCompletos = [];
 
-            // ===== ÍCONES POR DOENÇA =====
-            const iconesDoencas = {
-                'Malária': 'sick',
-                'Dengue': 'virus',
-                'Cólera': 'coronavirus',
-                'Tuberculose': 'lungs',
-                'HIV/SIDA': 'health_and_safety'
+        // ===== ÍCONES POR DOENÇA =====
+        const iconesDoencas = {
+            'Malária': 'sick',
+            'Dengue': 'virus',
+            'Cólera': 'coronavirus',
+            'Tuberculose': 'lungs',
+            'COVID-19': 'coronavirus',
+            'HIV/SIDA': 'health_and_safety'
+        };
+
+        // ===== PALETA DE CORES POR PROVÍNCIA =====
+        const paletaCores = {
+            light: ['#006b4d', '#0ea5e9', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16', '#e11d48', '#0891b2', '#a855f7'],
+            dark: ['#34d399', '#38bdf8', '#fbbf24', '#a78bfa', '#f472b6', '#2dd4bf', '#fb923c', '#818cf8', '#a3e635', '#fb7185', '#22d3ee', '#c084fc']
+        };
+
+        function getCorProvincia(provincia, isDark) {
+            const paleta = isDark ? paletaCores.dark : paletaCores.light;
+            let hash = 0;
+            for (let i = 0; i < provincia.length; i++) {
+                hash = provincia.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return paleta[Math.abs(hash) % paleta.length];
+        }
+
+        const coresIndicadores = {
+            'novos_casos': '#006b4d',
+            'casos_acumulados': '#0ea5e9',
+            'novos_obitos': '#dc2626',
+            'obitos_acumulados': '#8b5cf6',
+            'quantidade': '#f59e0b',
+            'confirmados': '#22c55e',
+            'curados': '#22c55e',
+            'obitos': '#dc2626'
+        };
+        const coresIndicadoresDark = {
+            'novos_casos': '#34d399',
+            'casos_acumulados': '#38bdf8',
+            'novos_obitos': '#f87171',
+            'obitos_acumulados': '#a78bfa',
+            'quantidade': '#fbbf24',
+            'confirmados': '#4ade80',
+            'curados': '#4ade80',
+            'obitos': '#f87171'
+        };
+
+        // ===== FUNÇÕES DE AGREGAÇÃO =====
+        function agregarPorData(dados, provinciaFiltro = 'Todas') {
+            const filtrados = provinciaFiltro === 'Todas' ? dados : dados.filter(item => item.provincia === provinciaFiltro);
+            const mapa = {};
+            filtrados.forEach(item => {
+                if (!mapa[item.data]) {
+                    mapa[item.data] = {
+                        novos_casos: 0,
+                        casos_acumulados: 0,
+                        novos_obitos: 0,
+                        obitos_acumulados: 0,
+                        // mantém os antigos para compatibilidade, mas não os usamos nos gráficos
+                    };
+                }
+                mapa[item.data].novos_casos += item.novos_casos || 0;
+                mapa[item.data].casos_acumulados += item.casos_acumulados || 0;
+                mapa[item.data].novos_obitos += item.novos_obitos || 0;
+                mapa[item.data].obitos_acumulados += item.obitos_acumulados || 0;
+            });
+            const labels = Object.keys(mapa).sort();
+            const valores = labels.map(data => mapa[data]);
+            return { labels, valores };
+        }
+
+        function agregarPorProvincia(dados) {
+            const mapa = {};
+            dados.forEach(item => {
+                const prov = item.provincia;
+                if (!mapa[prov]) {
+                    mapa[prov] = { novos_casos: 0, casos_acumulados: 0, novos_obitos: 0, obitos_acumulados: 0 };
+                }
+                mapa[prov].novos_casos += item.novos_casos || 0;
+                mapa[prov].casos_acumulados += item.casos_acumulados || 0;
+                mapa[prov].novos_obitos += item.novos_obitos || 0;
+                mapa[prov].obitos_acumulados += item.obitos_acumulados || 0;
+            });
+            const labels = Object.keys(mapa).sort();
+            const valores = labels.map(prov => mapa[prov]);
+            return { labels, valores };
+        }
+
+        // ===== ACTUALIZAR SELECT DE PROVÍNCIAS =====
+        function atualizarProvincias(dados) {
+            const provSet = new Set();
+            dados.forEach(item => provSet.add(item.provincia));
+            const provs = Array.from(provSet).sort();
+
+            const selectGraf = document.getElementById('provinciaFilter');
+            const valGraf = selectGraf.value;
+            selectGraf.innerHTML = '<option value="Todas">Todas</option>';
+            provs.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.textContent = p;
+                selectGraf.appendChild(opt);
+            });
+            if (provs.includes(valGraf)) selectGraf.value = valGraf;
+            else selectGraf.value = 'Todas';
+
+            const selectTab = document.getElementById('tabelaProvinciaFilter');
+            const valTab = selectTab.value;
+            selectTab.innerHTML = '<option value="Todas">Todas</option>';
+            provs.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.textContent = p;
+                selectTab.appendChild(opt);
+            });
+            if (provs.includes(valTab)) selectTab.value = valTab;
+            else selectTab.value = 'Todas';
+        }
+
+        // ===== ACTUALIZAR TABELA COM FILTRO =====
+        function atualizarTabela(dados, provinciaFiltro = 'Todas') {
+            const tbody = document.getElementById('doencasTableBody');
+            tbody.innerHTML = '';
+            const filtrados = provinciaFiltro === 'Todas' ? dados : dados.filter(item => item.provincia === provinciaFiltro);
+            if (filtrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="no-data">Nenhum dado disponível.</td></tr>`;
+                return;
+            }
+            filtrados.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="provincia">${item.provincia}</td>
+                    <td>${item.data}</td>
+                    <td class="numero">${(item.novos_casos || 0).toLocaleString('pt-PT')}</td>
+                    <td class="numero">${(item.casos_acumulados || 0).toLocaleString('pt-PT')}</td>
+                    <td class="numero obitos">${(item.novos_obitos || 0).toLocaleString('pt-PT')}</td>
+                    <td class="numero obitos">${(item.obitos_acumulados || 0).toLocaleString('pt-PT')}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ===== ACTUALIZAR ESTATÍSTICAS =====
+        function atualizarStats(dados) {
+            let totalNovos = 0, totalAcum = 0, totalNovosObitos = 0, totalObitosAcum = 0;
+            dados.forEach(item => {
+                totalNovos += item.novos_casos || 0;
+                totalAcum += item.casos_acumulados || 0;
+                totalNovosObitos += item.novos_obitos || 0;
+                totalObitosAcum += item.obitos_acumulados || 0;
+            });
+            document.getElementById('totalNovosCasos').textContent = totalNovos.toLocaleString('pt-PT');
+            document.getElementById('totalAcumulados').textContent = totalAcum.toLocaleString('pt-PT');
+            document.getElementById('totalNovosObitos').textContent = totalNovosObitos.toLocaleString('pt-PT');
+            document.getElementById('totalObitosAcumulados').textContent = totalObitosAcum.toLocaleString('pt-PT');
+        }
+
+        // ===== ACTUALIZAR CARD DINÂMICO =====
+        function atualizarCard(dados, doenca) {
+            let totalNovos = 0, totalAcum = 0, totalNovosObitos = 0, totalObitosAcum = 0;
+            dados.forEach(item => {
+                totalNovos += item.novos_casos || 0;
+                totalAcum += item.casos_acumulados || 0;
+                totalNovosObitos += item.novos_obitos || 0;
+                totalObitosAcum += item.obitos_acumulados || 0;
+            });
+            document.getElementById('card-doenca-titulo').textContent = `Casos de ${doenca}`;
+            document.getElementById('card-doenca-valor').textContent = totalNovos.toLocaleString('pt-PT');
+            document.getElementById('card-doenca-descricao').textContent = `${totalAcum.toLocaleString('pt-PT')} acumulados`;
+            document.getElementById('card-acumulados').textContent = totalAcum.toLocaleString('pt-PT');
+            document.getElementById('card-novos-obitos').textContent = totalNovosObitos.toLocaleString('pt-PT');
+            document.getElementById('card-obitos-acumulados').textContent = totalObitosAcum.toLocaleString('pt-PT');
+            document.getElementById('card-doenca-icon').textContent = iconesDoencas[doenca] || 'sick';
+        }
+
+        // ===== CRIAR MINI GRÁFICO DE BARRAS =====
+        function criarMiniGrafico(dados) {
+            const ctx = document.getElementById('miniChart');
+            if (miniChart) miniChart.destroy();
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const { labels, valores } = agregarPorProvincia(dados);
+            // Usar novos_casos para o mini gráfico
+            const data = valores.map(v => v.novos_casos || 0);
+            const coresBarras = labels.map(prov => getCorProvincia(prov, isDark));
+
+            miniChart = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Novos Casos por Província',
+                        data: data,
+                        backgroundColor: coresBarras,
+                        borderColor: coresBarras,
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        maxBarThickness: 20,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: isDark ? 'rgba(26,38,43,0.95)' : 'rgba(0,0,0,0.85)',
+                            titleFont: { family: 'Inter', weight: '700', size: 11 },
+                            bodyFont: { family: 'Inter', size: 11 },
+                            padding: 8,
+                            cornerRadius: 6,
+                            callbacks: {
+                                title: function(items) { return items[0].label; },
+                                label: function(context) {
+                                    return ` ${context.parsed.y.toLocaleString('pt-PT')} novos casos`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: false }, ticks: { display: false } },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                display: true,
+                                font: { family: 'Inter', size: 9, weight: '600' },
+                                color: isDark ? '#a8bcc5' : '#2a4048',
+                                maxRotation: 45,
+                                minRotation: 0,
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ===== ACTUALIZAR GRÁFICO PRINCIPAL =====
+        function atualizarGraficoPrincipal(dados) {
+            const provincia = document.getElementById('provinciaFilter').value;
+            const checks = document.querySelectorAll('.indicator-check:checked');
+            const indicadoresSelecionados = Array.from(checks).map(cb => cb.value);
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const cores = isDark ? coresIndicadoresDark : coresIndicadores;
+
+            const { labels, valores } = agregarPorData(dados, provincia);
+
+            const ctx = document.getElementById('casosChart');
+            if (mainChart) mainChart.destroy();
+
+            const datasets = [];
+            const nomesIndicadores = {
+                'novos_casos': 'Novos Casos',
+                'casos_acumulados': 'Acumulados',
+                'novos_obitos': 'Novos Óbitos',
+                'obitos_acumulados': 'Óbitos Acumulados',
+                'quantidade': 'Quantidade',
+                'confirmados': 'Confirmados',
+                'curados': 'Curados',
+                'obitos': 'Óbitos'
             };
 
-            // ===== FUNÇÃO PARA ACTUALIZAR TUDO =====
-            function atualizarDoenca(doencaSelecionada) {
-                doencaAtual = doencaSelecionada;
-                const dados = dadosDoencas[doencaSelecionada] || [];
-                const tbody = document.getElementById('doencasTableBody');
-                tbody.innerHTML = '';
-
-                if (dados.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="no-data">Nenhum dado disponível para esta doença.</td></tr>`;
-                    document.getElementById('totalCasos').textContent = '0';
-                    document.getElementById('totalConfirmados').textContent = '0';
-                    document.getElementById('totalCurados').textContent = '0';
-                    document.getElementById('totalObitos').textContent = '0';
-                    
-                    // Atualizar card dinâmico
-                    document.getElementById('card-doenca-titulo').textContent = `Casos de ${doencaSelecionada}`;
-                    document.getElementById('card-doenca-valor').textContent = '0';
-                    document.getElementById('card-doenca-descricao').textContent = 'Nenhum caso registado';
-                    document.getElementById('card-doenca-icon').textContent = iconesDoencas[doencaSelecionada] || 'sick';
-                    
-                    // Limpar gráficos
-                    if (miniChart) miniChart.destroy();
-                    if (mainChart) mainChart.destroy();
-                    return;
+            indicadoresSelecionados.forEach(ind => {
+                const data = valores.map(v => v[ind] || 0);
+                if (data.some(d => d > 0)) {
+                    datasets.push({
+                        label: nomesIndicadores[ind] || ind,
+                        data: data,
+                        borderColor: cores[ind] || '#000',
+                        backgroundColor: (cores[ind] || '#000') + '20',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: cores[ind] || '#000',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBorderColor: isDark ? '#1a262b' : 'white',
+                        pointBorderWidth: 1,
+                    });
                 }
+            });
 
-                // Calcular totais
-                let totalQuantidade = 0, totalConfirmados = 0, totalCurados = 0, totalObitos = 0;
-
-                dados.forEach(item => {
-                    totalQuantidade += item.quantidade || 0;
-                    totalConfirmados += item.confirmados || 0;
-                    totalCurados += item.curados || 0;
-                    totalObitos += item.obitos || 0;
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="provincia">${item.provincia}</td>
-                        <td>${item.data}</td>
-                        <td class="numero">${(item.quantidade || 0).toLocaleString('pt-PT')}</td>
-                        <td class="numero">${(item.confirmados || 0).toLocaleString('pt-PT')}</td>
-                        <td class="numero curados">${(item.curados || 0).toLocaleString('pt-PT')}</td>
-                        <td class="numero obitos">${(item.obitos || 0).toLocaleString('pt-PT')}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-
-                document.getElementById('totalCasos').textContent = totalQuantidade.toLocaleString('pt-PT');
-                document.getElementById('totalConfirmados').textContent = totalConfirmados.toLocaleString('pt-PT');
-                document.getElementById('totalCurados').textContent = totalCurados.toLocaleString('pt-PT');
-                document.getElementById('totalObitos').textContent = totalObitos.toLocaleString('pt-PT');
-
-                // Atualizar card dinâmico
-                document.getElementById('card-doenca-titulo').textContent = `Casos de ${doencaSelecionada}`;
-                document.getElementById('card-doenca-valor').textContent = totalQuantidade.toLocaleString('pt-PT');
-                document.getElementById('card-doenca-descricao').textContent = `${totalConfirmados.toLocaleString('pt-PT')} confirmados`;
-                document.getElementById('card-doenca-icon').textContent = iconesDoencas[doencaSelecionada] || 'sick';
-
-                // Atualizar título do gráfico principal
-                document.getElementById('evolucao-titulo').textContent = `Evolução dos casos de ${doencaSelecionada} – últimas 6 semanas`;
-                document.getElementById('evolucao-descricao').textContent = `Dados do boletim epidemiológico para ${doencaSelecionada}.`;
-
-                // Criar mini-gráfico dentro do card
-                criarMiniGrafico(dados);
-                
-                // Atualizar gráfico principal
-                criarGraficoPrincipal(dados);
-            }
-
-            // ===== CRIAR MINI-GRÁFICO =====
-            function criarMiniGrafico(dados) {
-                const ctx = document.getElementById('miniChart');
-                if (miniChart) miniChart.destroy();
-
-                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-                const primaryColor = isDark ? '#34d399' : '#006b4d';
-
-                // Agrupar por data e somar
-                const dadosPorData = {};
-                dados.forEach(item => {
-                    if (!dadosPorData[item.data]) {
-                        dadosPorData[item.data] = 0;
-                    }
-                    dadosPorData[item.data] += item.quantidade || 0;
-                });
-
-                const labels = Object.keys(dadosPorData).sort().slice(-10);
-                const valores = labels.map(data => dadosPorData[data]);
-
-                miniChart = new Chart(ctx.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Casos',
-                            data: valores,
-                            borderColor: primaryColor,
-                            backgroundColor: isDark ? 'rgba(52, 211, 153, 0.1)' : 'rgba(0, 107, 77, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 0,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: { enabled: false }
-                        },
-                        scales: {
-                            y: { display: false },
-                            x: { display: false }
-                        }
-                    }
-                });
-            }
-
-            // ===== CRIAR GRÁFICO PRINCIPAL =====
-            function criarGraficoPrincipal(dados) {
-                const ctx = document.getElementById('casosChart');
-                if (mainChart) mainChart.destroy();
-
-                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-                const primaryColor = isDark ? '#34d399' : '#006b4d';
-
-                // Agrupar por data e somar
-                const dadosPorData = {};
-                dados.forEach(item => {
-                    if (!dadosPorData[item.data]) {
-                        dadosPorData[item.data] = 0;
-                    }
-                    dadosPorData[item.data] += item.quantidade || 0;
-                });
-
-                const labels = Object.keys(dadosPorData).sort().slice(-10);
-                const valores = labels.map(data => dadosPorData[data]);
-
+            if (datasets.length === 0) {
                 mainChart = new Chart(ctx.getContext('2d'), {
                     type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: `Casos de ${doencaAtual}`,
-                            data: valores,
-                            borderColor: primaryColor,
-                            backgroundColor: isDark ? 'rgba(52, 211, 153, 0.1)' : 'rgba(0, 107, 77, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4,
-                            pointBackgroundColor: primaryColor,
-                            pointRadius: 5,
-                            pointHoverRadius: 8,
-                            pointBorderColor: isDark ? '#1a262b' : 'white',
-                            pointBorderWidth: 2,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: {
-                                    font: { family: 'Inter', weight: '700', size: 14 },
-                                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: isDark ? 'rgba(26,38,43,0.95)' : 'rgba(0,0,0,0.85)',
-                                titleFont: { family: 'Inter', weight: '700' },
-                                bodyFont: { family: 'Inter' },
-                                cornerRadius: 8,
-                                padding: 12,
-                                callbacks: {
-                                    label: function(context) {
-                                        return ` ${context.parsed.y.toLocaleString('pt-PT')} casos`;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Número de casos',
-                                    font: { family: 'Inter', weight: '600', size: 13 },
-                                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
-                                },
-                                grid: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
-                                ticks: {
-                                    font: { family: 'Inter' },
-                                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim(),
-                                    callback: function(value) {
-                                        return value.toLocaleString('pt-PT');
-                                    }
-                                }
-                            },
-                            x: {
-                                grid: { display: false },
-                                ticks: {
-                                    font: { family: 'Inter', weight: '500' },
-                                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
-                                }
-                            }
-                        },
-                        interaction: {
-                            intersect: false,
-                            mode: 'index',
-                        }
-                    }
+                    data: { labels: labels, datasets: [] },
+                    options: { plugins: { legend: { display: false } } }
                 });
+                return;
             }
 
-            // ===== CRIAR GRÁFICO NO MODAL =====
-            function criarGraficoModal(dados) {
-                const ctx = document.getElementById('modalChart');
-                if (modalChart) modalChart.destroy();
+            const tituloProvincia = provincia === 'Todas' ? 'todas as províncias' : `província ${provincia}`;
+            document.getElementById('evolucao-titulo').textContent = `Evolução dos casos de ${doencaAtual} – ${tituloProvincia}`;
 
-                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-                const primaryColor = isDark ? '#34d399' : '#006b4d';
-
-                // Agrupar por data e somar
-                const dadosPorData = {};
-                dados.forEach(item => {
-                    if (!dadosPorData[item.data]) {
-                        dadosPorData[item.data] = 0;
-                    }
-                    dadosPorData[item.data] += item.quantidade || 0;
-                });
-
-                const labels = Object.keys(dadosPorData).sort();
-                const valores = labels.map(data => dadosPorData[data]);
-
-                modalChart = new Chart(ctx.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: `Casos de ${doencaAtual}`,
-                            data: valores,
-                            borderColor: primaryColor,
-                            backgroundColor: isDark ? 'rgba(52, 211, 153, 0.1)' : 'rgba(0, 107, 77, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4,
-                            pointBackgroundColor: primaryColor,
-                            pointRadius: 5,
-                            pointHoverRadius: 8,
-                            pointBorderColor: isDark ? '#1a262b' : 'white',
-                            pointBorderWidth: 2,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: {
-                                    font: { family: 'Inter', weight: '700', size: 14 },
-                                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: isDark ? 'rgba(26,38,43,0.95)' : 'rgba(0,0,0,0.85)',
-                                titleFont: { family: 'Inter', weight: '700' },
-                                bodyFont: { family: 'Inter' },
-                                cornerRadius: 8,
-                                padding: 12,
-                                callbacks: {
-                                    label: function(context) {
-                                        return ` ${context.parsed.y.toLocaleString('pt-PT')} casos`;
-                                    }
-                                }
+            mainChart = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: { labels: labels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                font: { family: 'Inter', weight: '700', size: 13 },
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
                             }
                         },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Número de casos',
-                                    font: { family: 'Inter', weight: '600', size: 13 },
-                                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
-                                },
-                                grid: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
-                                ticks: {
-                                    font: { family: 'Inter' },
-                                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim(),
-                                    callback: function(value) {
-                                        return value.toLocaleString('pt-PT');
-                                    }
-                                }
-                            },
-                            x: {
-                                grid: { display: false },
-                                ticks: {
-                                    font: { family: 'Inter', weight: '500' },
-                                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
+                        tooltip: {
+                            backgroundColor: isDark ? 'rgba(26,38,43,0.95)' : 'rgba(0,0,0,0.85)',
+                            titleFont: { family: 'Inter', weight: '700' },
+                            bodyFont: { family: 'Inter' },
+                            cornerRadius: 8,
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.dataset.label}: ${context.parsed.y.toLocaleString('pt-PT')}`;
                                 }
                             }
-                        },
-                        interaction: {
-                            intersect: false,
-                            mode: 'index',
                         }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número',
+                                font: { family: 'Inter', weight: '600', size: 13 },
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
+                            },
+                            grid: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
+                            ticks: {
+                                font: { family: 'Inter' },
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim(),
+                                callback: function(value) {
+                                    return value.toLocaleString('pt-PT');
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { family: 'Inter', weight: '500' },
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
                     }
-                });
-            }
-
-            // ===== SELECT DE DOENÇAS =====
-            const select = document.getElementById('doencaSelect');
-            if (select) {
-                if (select.options.length > 0) {
-                    atualizarDoenca(select.value);
                 }
+            });
+        }
 
-                select.addEventListener('change', function() {
-                    atualizarDoenca(this.value);
-                });
+        // ===== CRIAR GRÁFICO NO MODAL =====
+        function criarGraficoModal(dados) {
+            const ctx = document.getElementById('modalChart');
+            if (modalChart) modalChart.destroy();
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const { labels, valores } = agregarPorProvincia(dados);
+            const data = valores.map(v => v.novos_casos || 0);
+            const coresBarras = labels.map(prov => getCorProvincia(prov, isDark));
+
+            modalChart = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Novos Casos de ${doencaAtual} por Província`,
+                        data: data,
+                        backgroundColor: coresBarras,
+                        borderColor: coresBarras,
+                        borderWidth: 2,
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: isDark ? 'rgba(26,38,43,0.95)' : 'rgba(0,0,0,0.85)',
+                            titleFont: { family: 'Inter', weight: '700', size: 13 },
+                            bodyFont: { family: 'Inter', size: 13 },
+                            cornerRadius: 8,
+                            padding: 12,
+                            callbacks: {
+                                title: function(items) { return items[0].label; },
+                                label: function(context) {
+                                    return ` ${context.parsed.y.toLocaleString('pt-PT')} novos casos`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Novos casos',
+                                font: { family: 'Inter', weight: '600', size: 13 },
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
+                            },
+                            grid: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
+                            ticks: {
+                                font: { family: 'Inter' },
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim(),
+                                callback: function(value) {
+                                    return value.toLocaleString('pt-PT');
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { family: 'Inter', weight: '600', size: 12 },
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim(),
+                                maxRotation: 45,
+                                minRotation: 0,
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ===== ACTUALIZAR TUDO =====
+        function atualizarDoenca(doencaSelecionada) {
+            doencaAtual = doencaSelecionada;
+            const dados = dadosDoencas[doencaSelecionada] || [];
+            dadosCompletos = dados;
+
+            if (dados.length === 0) {
+                document.getElementById('doencasTableBody').innerHTML = `<tr><td colspan="6" class="no-data">Nenhum dado disponível para esta doença.</td></tr>`;
+                document.getElementById('totalNovosCasos').textContent = '0';
+                document.getElementById('totalAcumulados').textContent = '0';
+                document.getElementById('totalNovosObitos').textContent = '0';
+                document.getElementById('totalObitosAcumulados').textContent = '0';
+                document.getElementById('card-doenca-titulo').textContent = `Casos de ${doencaSelecionada}`;
+                document.getElementById('card-doenca-valor').textContent = '0';
+                document.getElementById('card-doenca-descricao').textContent = 'Nenhum dado registado';
+                document.getElementById('card-acumulados').textContent = '0';
+                document.getElementById('card-novos-obitos').textContent = '0';
+                document.getElementById('card-obitos-acumulados').textContent = '0';
+                document.getElementById('card-doenca-icon').textContent = iconesDoencas[doencaSelecionada] || 'sick';
+                document.getElementById('evolucao-titulo').textContent = `Evolução dos casos de ${doencaSelecionada}`;
+                if (miniChart) miniChart.destroy();
+                if (mainChart) mainChart.destroy();
+                return;
             }
 
-            // ===== MODAL DO GRÁFICO =====
-            const chartModal = document.getElementById('chartModal');
-            const closeModalBtn = document.getElementById('closeModalBtn');
-            const expandChartBtn = document.getElementById('expandChartBtn');
-            const cardDinamico = document.getElementById('card-doenca-dinamico');
+            atualizarProvincias(dados);
+            atualizarStats(dados);
+            atualizarCard(dados, doencaSelecionada);
+            
+            const filtroProvincia = document.getElementById('tabelaProvinciaFilter').value;
+            atualizarTabela(dados, filtroProvincia);
+            
+            criarMiniGrafico(dados);
+            atualizarGraficoPrincipal(dados);
+        }
 
-            function abrirModal() {
+        // ===== MODAL =====
+        const chartModal = document.getElementById('chartModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const expandChartBtn = document.getElementById('expandChartBtn');
+        const cardDinamico = document.getElementById('card-doenca-dinamico');
+
+        function abrirModal() {
+            const dados = dadosDoencas[doencaAtual] || [];
+            if (dados.length === 0) return;
+            document.getElementById('modalTitle').textContent = `Distribuição de Novos Casos - ${doencaAtual}`;
+            chartModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            criarGraficoModal(dados);
+        }
+
+        function fecharModal() {
+            chartModal.classList.remove('active');
+            document.body.style.overflow = '';
+            if (modalChart) {
+                modalChart.destroy();
+                modalChart = null;
+            }
+        }
+
+        expandChartBtn?.addEventListener('click', function(e) { e.stopPropagation(); abrirModal(); });
+        cardDinamico?.addEventListener('click', abrirModal);
+        cardDinamico?.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirModal(); }
+        });
+        closeModalBtn?.addEventListener('click', fecharModal);
+        chartModal?.addEventListener('click', function(e) { if (e.target === chartModal) fecharModal(); });
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && chartModal.classList.contains('active')) fecharModal(); });
+
+        // ===== EVENTOS DOS FILTROS =====
+        const selectDoenca = document.getElementById('doencaSelect');
+        if (selectDoenca) {
+            if (selectDoenca.options.length > 0) {
+                atualizarDoenca(selectDoenca.value);
+            }
+            selectDoenca.addEventListener('change', function() {
+                atualizarDoenca(this.value);
+            });
+        }
+
+        document.getElementById('provinciaFilter').addEventListener('change', function() {
+            const dados = dadosDoencas[doencaAtual] || [];
+            if (dados.length > 0) {
+                atualizarGraficoPrincipal(dados);
+                document.getElementById('tabelaProvinciaFilter').value = this.value;
+                atualizarTabela(dados, this.value);
+            }
+        });
+
+        document.getElementById('tabelaProvinciaFilter').addEventListener('change', function() {
+            const dados = dadosDoencas[doencaAtual] || [];
+            if (dados.length > 0) {
+                atualizarTabela(dados, this.value);
+                document.getElementById('provinciaFilter').value = this.value;
+                atualizarGraficoPrincipal(dados);
+            }
+        });
+
+        document.getElementById('limparFiltroTabela').addEventListener('click', function() {
+            document.getElementById('tabelaProvinciaFilter').value = 'Todas';
+            document.getElementById('provinciaFilter').value = 'Todas';
+            const dados = dadosDoencas[doencaAtual] || [];
+            if (dados.length > 0) {
+                atualizarTabela(dados, 'Todas');
+                atualizarGraficoPrincipal(dados);
+            }
+        });
+
+        document.querySelectorAll('.indicator-check').forEach(cb => {
+            cb.addEventListener('change', function() {
                 const dados = dadosDoencas[doencaAtual] || [];
-                document.getElementById('modalTitle').textContent = `Evolução de Casos - ${doencaAtual}`;
-                chartModal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                criarGraficoModal(dados);
-            }
-
-            function fecharModal() {
-                chartModal.classList.remove('active');
-                document.body.style.overflow = '';
-                if (modalChart) {
-                    modalChart.destroy();
-                    modalChart = null;
+                if (dados.length > 0) {
+                    atualizarGraficoPrincipal(dados);
                 }
-            }
-
-            expandChartBtn?.addEventListener('click', function(e) {
-                e.stopPropagation();
-                abrirModal();
-            });
-
-            cardDinamico?.addEventListener('click', function() {
-                abrirModal();
-            });
-
-            cardDinamico?.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    abrirModal();
-                }
-            });
-
-            closeModalBtn?.addEventListener('click', fecharModal);
-
-            chartModal?.addEventListener('click', function(e) {
-                if (e.target === chartModal) {
-                    fecharModal();
-                }
-            });
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && chartModal.classList.contains('active')) {
-                    fecharModal();
-                }
-            });
-
-            // ===== MENU HAMBURGER =====
-            const toggle = document.querySelector('.menu-toggle');
-            const nav = document.querySelector('.main-nav');
-            if (toggle && nav) {
-                toggle.addEventListener('click', function() {
-                    nav.classList.toggle('open');
-                    this.setAttribute('aria-expanded', nav.classList.contains('open'));
-                });
-                nav.querySelectorAll('a').forEach(link => {
-                    link.addEventListener('click', function() {
-                        if (window.innerWidth <= 880) {
-                            nav.classList.remove('open');
-                            toggle.setAttribute('aria-expanded', 'false');
-                        }
-                    });
-                });
-            }
-
-            // ===== TEMA CLARO/ESCURO =====
-            const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = document.getElementById('themeIcon');
-            const html = document.documentElement;
-
-            function setTheme(theme) {
-                html.setAttribute('data-theme', theme);
-                localStorage.setItem('theme', theme);
-                themeIcon.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
-                
-                // Recriar gráficos com novas cores
-                if (doencaAtual) {
-                    const dados = dadosDoencas[doencaAtual] || [];
-                    if (dados.length > 0) {
-                        criarMiniGrafico(dados);
-                        criarGraficoPrincipal(dados);
-                    }
-                }
-            }
-
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                setTheme(savedTheme);
-            } else {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                setTheme(prefersDark ? 'dark' : 'light');
-            }
-
-            themeToggle.addEventListener('click', function() {
-                const current = html.getAttribute('data-theme');
-                const next = current === 'dark' ? 'light' : 'dark';
-                setTheme(next);
             });
         });
+
+        // ===== MENU HAMBURGER =====
+        const toggle = document.querySelector('.menu-toggle');
+        const nav = document.querySelector('.main-nav');
+        if (toggle && nav) {
+            toggle.addEventListener('click', function() {
+                nav.classList.toggle('open');
+                this.setAttribute('aria-expanded', nav.classList.contains('open'));
+            });
+            nav.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 880) {
+                        nav.classList.remove('open');
+                        toggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+        }
+
+        // ===== TEMA CLARO/ESCURO =====
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const html = document.documentElement;
+
+        function setTheme(theme) {
+            html.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            themeIcon.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
+            const dados = dadosDoencas[doencaAtual] || [];
+            if (dados.length > 0) {
+                criarMiniGrafico(dados);
+                atualizarGraficoPrincipal(dados);
+            }
+        }
+
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            setTheme(savedTheme);
+        } else {
+            setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        }
+
+        themeToggle.addEventListener('click', function() {
+            const current = html.getAttribute('data-theme');
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        });
+    });
     </script>
 </body>
 </html>

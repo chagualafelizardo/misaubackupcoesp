@@ -1,0 +1,85 @@
+{
+  "data_referencia": "2026-09-07",
+  "registos": [
+    {
+      "provincia": "Maputo",
+      "data_referencia": "2026-09-07",
+      "casos_novos": 12,
+      "casos_total": 345,
+      "obitos_novos": 0,
+      "obitos_total": 4
+    },
+    {
+      "provincia": "Gaza",
+      "data_referencia": "2026-09-07",
+      "casos_novos": 8,
+      "casos_total": 210,
+      "obitos_novos": 0,
+      "obitos_total": 2
+    },
+    {
+      "provincia": "Inhambane",
+      "data_referencia": "2026-09-07",
+      "casos_novos": 5,
+      "casos_total": 98,
+      "obitos_novos": 0,
+      "obitos_total": 1
+    },
+    {
+      "provincia": "Sofala",
+      "data_referencia": "2026-09-07",
+      "casos_novos": 34,
+      "casos_total": 890,
+      "obitos_novos": 2,
+      "obitos_total": 15
+    },
+    {
+      "provincia": "Manica",
+      "data_referencia": "2026-09-07",
+      "casos_novos": 15,
+      "casos_total": 420,
+      "obitos_novos": 1,
+      "obitos_total": 7
+    },
+    {
+      "provincia": "Tete",
+      "data_referencia": "2026-09-07",
+      "casos_novos": 22,
+      "casos_total": 560,
+      "obitos_novos": 1,
+      "obitos_total": 9
+    },
+    {
+      "provincia": "Zambézia",
+      "data_referencia": "2026-09-07",
+      "casos_novos": 41,
+      "casos_total": 1250,
+      "obitos_novos": 3,
+      "obitos_total": 28
+    },
+    {
+      "provincia": "Nampula",
+      "data_referencia": "2026-09-07",
+      "casos_novos": 29,
+      "casos_total": 980,
+      "obitos_novos": 1,
+      "obitos_total": 18
+    },
+    {
+      "provincia": "Cabo Delgado",
+      "data_referencia": "2026-09-07",
+      "casos_novos": 56,
+      "casos_total": 1600,
+      "obitos_novos": 4,
+      "obitos_total": 42
+    },
+    {
+      "provincia": "Niassa",
+      "data_referencia": "2026-09-07",
+      "casos_novos": 6,
+      "casos_total": 120,
+      "obitos_novos": 0,
+      "obitos_total": 2
+    }
+  ]
+}

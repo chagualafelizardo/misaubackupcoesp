@@ -27,12 +27,9 @@ class Command(BaseCommand):
             obj, created = Provincia.objects.get_or_create(nome=p['nome'], sigla=p['sigla'])
             self.stdout.write(f'Província {obj.nome} {"criada" if created else "já existente"}.')
 
-        # Doenças (incluindo "Outra")
         doencas = [
             {'nome': 'Malária', 'tipo': 'malaria', 'sintomas': 'Febre alta, calafrios\nDores no corpo e dor de cabeça\nNáuseas, vómitos', 'orientacao': 'Teste rápido gratuito no posto de saúde + tratamento imediato.'},
             {'nome': 'Cólera', 'tipo': 'colera', 'sintomas': 'Diarreia aquosa abundante\nVómitos\nSede excessiva e fraqueza', 'orientacao': 'Hidratação oral (soro caseiro) e procure a unidade sanitária mais próxima.'},
-            {'nome': 'Dengue', 'tipo': 'dengue', 'sintomas': 'Febre alta, dores musculares\nDor atrás dos olhos\nManchas vermelhas na pele', 'orientacao': 'Procure atendimento médico e mantenha-se hidratado.'},
-            {'nome': 'Outra', 'tipo': 'outra', 'sintomas': 'Sintomas variados', 'orientacao': 'Consulte um profissional de saúde.'},
         ]
         for d in doencas:
             obj, created = Doenca.objects.get_or_create(nome=d['nome'], defaults=d)
@@ -58,7 +55,6 @@ class Command(BaseCommand):
             {'prov': 'CAB', 'doenca_nome': 'Cólera', 'titulo': 'Cólera e desnutrição em distritos de deslocados', 'gravidade': 'critico', 'status': 'Resposta em curso', 'orientacao': 'Ver recomendações'},
             {'prov': 'SOF', 'doenca_nome': 'Malária', 'titulo': 'Aumento de malária grave (Beira, Nhamatanda)', 'gravidade': 'atencao', 'status': 'Monitoramento', 'orientacao': 'Uso de mosquiteiro'},
             {'prov': 'ZAM', 'doenca_nome': 'Cólera', 'titulo': 'Surtos de cólera em Mopeia', 'gravidade': 'atencao', 'status': 'Campanha de vacinação', 'orientacao': 'Lavar mãos'},
-            {'prov': 'MPM', 'doenca_nome': 'Outra', 'titulo': 'Campanha de vacinação contra HPV', 'gravidade': 'informacao', 'status': 'Em andamento', 'orientacao': 'Agende sua filha'},
         ]
         for a in alertas:
             prov = Provincia.objects.get(sigla=a['prov'])
